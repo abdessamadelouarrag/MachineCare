@@ -1,5 +1,6 @@
 import User from "../models/users.js"
 import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
 
 export async function register(req, res, next){
     try{
@@ -40,3 +41,37 @@ export async function register(req, res, next){
     }
 }
 
+export async function login(req, res, next) {
+    try{
+
+        const {email, password} = req.body;
+    
+        if(!email || !password){
+            res.satus(400).json({
+                message_error : "obligation de email et mot de pass !"
+            })
+        }
+    
+        const emailToLower = email.trim().toLowerCase();
+        const findUser = await User.findOne({email : emailToLower});
+    
+        if(!findUser){
+            res.status(404).json({
+                message_error : "il n'est pas un utilisateur avec l'email ! (Allez a Register)"
+            })
+        }
+    
+        const deHashPassword = findUser && await bcrypt.compare(password, findUser.password);
+    
+        // creation de token jwt
+        const token = jwt.sign({sub : findUser._id.toString()}, process.env.JWT_SECRET, {expiresIn : '1h'})
+    
+        return res.status(201).json({
+            token : token,
+            user : {name : findUser.name},
+            message : "login bien G"
+        })
+    }catch(error){
+        next(error);
+    }
+}

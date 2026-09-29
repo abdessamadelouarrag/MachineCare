@@ -1,16 +1,26 @@
 import express from "express"
 import {connectDb} from "./config/db.js";
-import dotenv from "dotenv";
+import "dotenv/config";
+import authRouter from "./routes/authRouter.js"
 
 const port = process.env.PORT || 3000;
 
 const app = express();
+app.use(express.json());
+
+app.get("/", (req, res) =>{
+    res.json({
+        message : "Welcome To Machine Care"
+    })
+})
+
+app.use("/api/auth", authRouter);
 
 async function startServer(){
     try{
         await connectDb();
         app.listen(port, () =>{
-            console.log(`server start in port ${port}`)
+            console.log(`=> Server start in port ${port}`)
         })
     }catch(error){
         console.log(error);

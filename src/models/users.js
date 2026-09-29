@@ -3,19 +3,19 @@ import mongoose from "mongoose";
 const usersSchema = new mongoose.Schema({
     name : {
         type : String,
-        require : true,
+        required : true,
         trim : true
     },
     email : {
         type : String,
-        require : [true, "email et obligatoir"],
+        required : [true, "email et obligatoir"],
         unique : true,
         trim : true,
         match: [/^\S+@\S+\.\S+$/, "Veuillez fournir une adresse email valide"]
     },
     password : {
         type : String,
-        require : [true, "obligation le mot de pass"],
+        required : [true, "obligation le mot de pass"],
         minlength : [6, "min 6 caracteres"]
     }
 },{

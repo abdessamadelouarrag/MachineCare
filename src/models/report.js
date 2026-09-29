@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const reportSchema = new mongoose.Schema({
     machine : {
         type :mongoose.Schema.Types.ObjectId,
-        ref : "Machin",
+        ref : "Machine",
         required : true
     },
     reportedBy : {
@@ -25,7 +25,7 @@ const reportSchema = new mongoose.Schema({
         type : Date,
         default : null
     },
-    }, {timestampe : true}
+    }, {timestamps : true}
 )
 
 const Report = mongoose.model("report", reportSchema);

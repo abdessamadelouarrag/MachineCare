@@ -2,6 +2,7 @@ import express from "express"
 import {connectDb} from "./config/db.js";
 import "dotenv/config";
 import authRouter from "./routes/authRouter.js"
+import dashboardRouter from "./routes/dashboardRouter.js"
 
 const port = process.env.PORT || 3000;
 
@@ -15,6 +16,7 @@ app.get("/", (req, res) =>{
 })
 
 app.use("/api/auth", authRouter);
+app.use("/api/", dashboardRouter)
 
 async function startServer(){
     try{

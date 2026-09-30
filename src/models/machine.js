@@ -27,6 +27,6 @@ const machineSchema = new mongoose.Schema({
     {timestamps : true}
 )
 
-const Machine = mongoose.model("Machine", machineSchema);
+const Machine = mongoose.model("machines", machineSchema);
 
 export default Machine;

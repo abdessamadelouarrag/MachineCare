@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const reportSchema = new mongoose.Schema({
     machine : {
         type :mongoose.Schema.Types.ObjectId,
-        ref : "Machine",
+        ref : "machines",
         required : true
     },
     reportedBy : {

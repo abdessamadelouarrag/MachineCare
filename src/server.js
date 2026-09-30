@@ -4,6 +4,7 @@ import "dotenv/config";
 import authRouter from "./routes/authRouter.js"
 import dashboardRouter from "./routes/dashboardRouter.js"
 import machineRouter from "./routes/machineRouter.js"
+import profileRouter from "./routes/profileRouter.js"
 
 const port = process.env.PORT || 3000;
 
@@ -19,6 +20,8 @@ app.get("/", (req, res) =>{
 app.use("/api/auth", authRouter);
 app.use("/api/", dashboardRouter);
 app.use("/api/machine", machineRouter);
+app.use("/api/profile", profileRouter);
+
 
 async function startServer(){
     try{

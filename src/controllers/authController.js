@@ -75,3 +75,33 @@ export async function login(req, res, next) {
         next(error);
     }
 }
+
+export async function defaultUser(req, res){
+    try{
+        const passwordTest = "admin123";
+        const emailTest = "admin@owner.cc"
+        const hashPassword = await bcrypt.hash(passwordTest, 10)
+        
+        const findUser = await User.findOne({email : emailTest})
+
+        if(findUser){
+            return res.status(400).json({
+                message_error : "le default compte et deja creer !",
+                info_default_user : {email : emailTest, password : passwordTest}
+            })
+        }
+        const defaultUser = await User.create({
+            name : "admin",
+            email : emailTest,
+            password : hashPassword
+        })
+
+    
+        return res.status(201).json({
+            message : "default compte est creer ...",
+            info_user_pour_login : {email : emailTest, password : passwordTest}
+        })
+    }catch(error){
+        res.status(404).send(error)
+    }
+}

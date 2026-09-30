@@ -1,5 +1,14 @@
 import Machine from "../models/machine.js";
 
+export async function getMachines(req, res, next){
+    try{
+        const machines = await Machine.find();
+        return res.status(200).json({machines});
+    }catch(error){
+        next(error);
+    }
+}
+
 export async function createMachine(req, res, next){
     try{
         const {reference, name, workshop, status} = req.body;

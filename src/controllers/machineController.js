@@ -50,3 +50,22 @@ export async function createMachine(req, res, next){
     }
 
 }
+
+
+export async function allMachines(req, res) {
+
+    const machines = await Machine.find();
+    const totalMachine = machines.length;
+    
+    return res.status(200).json({
+        total_machines : totalMachine,
+        machines : machines.map(machine => ({
+            id : machine._id,
+            reference : machine.reference,
+            name : machine.name,
+            workshop : machine.workshop,
+            status : machine.status
+        }))
+    })
+}
+

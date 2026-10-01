@@ -2,6 +2,7 @@ import User from "../models/users.js"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 
+
 export async function register(req, res, next){
     try{
         const {name, email, password} = req.body;
@@ -25,7 +26,7 @@ export async function register(req, res, next){
         const hashedPassword = await bcrypt.hash(password, 10)
 
         // creer le compte
-        const newUser = User.create({
+        const newUser = await User.create({
             name : name,
             email : toLowerEmail,
             password : hashedPassword
@@ -47,7 +48,7 @@ export async function login(req, res, next) {
         const {email, password} = req.body;
     
         if(!email || !password){
-            res.satus(400).json({
+            return res.status(400).json({
                 message_error : "obligation de email et mot de pass !"
             })
         }
@@ -56,12 +57,18 @@ export async function login(req, res, next) {
         const findUser = await User.findOne({email : emailToLower});
     
         if(!findUser){
-            res.status(404).json({
+            return res.status(401).json({
                 message_error : "il n'est pas un utilisateur avec l'email ! (Allez a Register)"
             })
         }
     
         const deHashPassword = findUser && await bcrypt.compare(password, findUser.password);
+
+        if(!deHashPassword){
+            return res.status(401).json({
+                message_error : "invalide mot de pass !"
+            })
+        }
     
         // creation de token jwt
         const token = jwt.sign({sub : findUser._id.toString()}, process.env.JWT_SECRET, {expiresIn : '1h'})

@@ -23,6 +23,12 @@ export async function verifyToken(req, res, next) {
             message : "introvable Utilidateur !"
         })
     }
+    if((payload.tokenVersion ?? 0) !== (user.tokenVersion ?? 0)){
+        return res.status(401).json({
+            message_error : "vous etes deconnecte. Connectez-vous a nouveau !"
+        })
+    }
+
     req.user = user;
     next();
   } catch {

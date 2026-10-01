@@ -2,6 +2,27 @@ import User from "../models/users.js"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 
+export async function logout(req, res, next){
+    try{
+        // changer la version pour refuser les anciens tokens
+        const updateUser = await User.updateOne(
+            {_id : req.user._id},
+            {$inc : {tokenVersion : 1}}
+        )
+
+        if(!updateUser.matchedCount){
+            return res.status(401).json({
+                message_error : "utilisateur introuvable !"
+            })
+        }
+
+        return res.status(200).json({
+            message : "Deconnexion reussie."
+        })
+    }catch(error){
+        next(error);
+    }
+}
 
 export async function register(req, res, next){
     try{
@@ -71,7 +92,10 @@ export async function login(req, res, next) {
         }
     
         // creation de token jwt
-        const token = jwt.sign({sub : findUser._id.toString()}, process.env.JWT_SECRET, {expiresIn : '1h'})
+        const token = jwt.sign({
+            sub : findUser._id.toString(),
+            tokenVersion : findUser.tokenVersion ?? 0
+        }, process.env.JWT_SECRET, {expiresIn : '1h'})
     
         return res.status(201).json({
             token : token,

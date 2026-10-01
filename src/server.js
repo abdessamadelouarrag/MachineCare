@@ -19,7 +19,7 @@ app.get("/", (req, res) =>{
 
 app.use("/api/auth", authRouter);
 app.use("/api/", dashboardRouter);
-app.use("/api/machine", machineRouter);
+app.use("/api/machines", machineRouter);
 app.use("/api/profile", profileRouter);
 
 

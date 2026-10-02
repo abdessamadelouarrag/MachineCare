@@ -1,4 +1,4 @@
-import Machine from "../models/machine.js";
+﻿import Machine from "../models/machine.js";
 import Report from "../models/report.js";
 
 export async function getMachines(req, res, next){
@@ -69,52 +69,6 @@ export async function createMachine(req, res, next){
         return res.status(201).json({
             message : "Machine creee.",
             info_machine : machine
-        })
-    }catch(error){
-        next(error);
-    }
-}
-
-export async function allMachines(req, res) {
-
-    const machines = await Machine.find();
-    const totalMachine = machines.length;
-    
-    return res.status(200).json({
-        total_machines : totalMachine,
-        machines : machines.map(machine => ({
-            id : machine._id,
-            reference : machine.reference,
-            name : machine.name,
-            workshop : machine.workshop,
-            status : machine.status
-        }))
-    })
-}
-
-//delete machine avec reference
-
-export async function deleteMahchine(req, res, next){
-    try{
-        const machine = await Machine.findOne({reference : req.params.reference});
-        if(!machine){
-            return res.status(404).json({
-                message_error : "Machine introuvable !"
-            })
-        }
-        // conserver l'historique des signalements
-        const findReport = await Report.exists({machine : machine._id});
-        if(findReport){
-            return res.status(409).json({
-                message_error : "Suppression impossible : cette machine a des signalements !"
-            })
-        }
-        await Machine.deleteOne({_id : machine._id});
-        return res.status(200).json({
-            message : "Machine supprimee.",
-            machines_deleted : {
-                reference : machine.reference
-            }
         })
     }catch(error){
         next(error);
@@ -200,4 +154,54 @@ export async function updateMachine(req, res, next){
     }catch(error){
         next(error);
     }
+}
+
+export async function machineHistory(req, res, next){
+    try{
+        const machine = await Machine.findOne({reference : req.params.reference});
+        if(!machine){
+            return res.status(404).json({
+                message_error : "Machine introuvable !"
+            })
+        }
+        const reports = await Report.find({machine : machine._id})
+            .populate("reportedBy", "name email").sort({createdAt : -1});
+        return res.status(200).json({
+            machine : machine,
+            reports : reports
+        });
+    }catch(error){
+        next(error);
+    }
+}
+
+export async function deleteMahchine(req, res, next){
+    try{
+        const machine = await Machine.findOne({reference : req.params.reference});
+        if(!machine){
+            return res.status(404).json({
+                message_error : "Machine introuvable !"
+            })
+        }
+        // conserver l'historique des signalements
+        const findReport = await Report.exists({machine : machine._id});
+        if(findReport){
+            return res.status(409).json({
+                message_error : "Suppression impossible : cette machine a des signalements !"
+            })
+        }
+        await Machine.deleteOne({_id : machine._id});
+        return res.status(200).json({
+            message : "Machine supprimee.",
+            machines_deleted : {
+                reference : machine.reference
+            }
+        })
+    }catch(error){
+        next(error);
+    }
+}
+
+export async function allMachines(req, res, next){
+    return getMachines(req, res, next);
 }

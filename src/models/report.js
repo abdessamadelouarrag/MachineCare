@@ -22,11 +22,17 @@ const reportSchema = new mongoose.Schema({
         default : "open",
         required : true
     },
+    resolutionNote : {
+        type : String,
+        trim : true,
+        default : "",
+        required : function(){ return this.status === "resolved" }
+    },
     resolvedAt : {
         type : Date,
         default : null
     },
-    }, {timestamps : true}
+    }, {timestamps : true, optimisticConcurrency : true}
 )
 
 const Report = mongoose.model("report", reportSchema);

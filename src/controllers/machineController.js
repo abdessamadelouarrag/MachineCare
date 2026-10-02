@@ -113,3 +113,19 @@ export async function deleteMahchine(req, res){
     })
 
 }
+
+export async function getMachine(req, res, next){
+    try{
+        const machine = await Machine.findOne({reference : req.params.reference});
+        if(!machine){
+            return res.status(404).json({
+                message_error : "Machine introuvable !"
+            })
+        }
+        return res.status(200).json({
+            machine : machine
+        });
+    }catch(error){
+        next(error);
+    }
+}

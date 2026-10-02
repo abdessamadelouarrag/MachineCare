@@ -94,24 +94,31 @@ export async function allMachines(req, res) {
 
 //delete machine avec reference
 
-export async function deleteMahchine(req, res){
-    const {reference} = req.params
-
-    const machine = await Machine.findOne({reference : reference})
-
-    if(!machine){
-        return res.status(404).json({
-            message_error : "machine introuvable avec se reference !"
+export async function deleteMahchine(req, res, next){
+    try{
+        const machine = await Machine.findOne({reference : req.params.reference});
+        if(!machine){
+            return res.status(404).json({
+                message_error : "Machine introuvable !"
+            })
+        }
+        // conserver l'historique des signalements
+        const findReport = await Report.exists({machine : machine._id});
+        if(findReport){
+            return res.status(409).json({
+                message_error : "Suppression impossible : cette machine a des signalements !"
+            })
+        }
+        await Machine.deleteOne({_id : machine._id});
+        return res.status(200).json({
+            message : "Machine supprimee.",
+            machines_deleted : {
+                reference : machine.reference
+            }
         })
+    }catch(error){
+        next(error);
     }
-
-    const deleteMachine = await Machine.deleteOne({reference : reference});
-
-    return res.status(200).json({
-        message : "vous avez supprimer la machine...",
-        machines_deleted : {reference : reference}
-    })
-
 }
 
 export async function getMachine(req, res, next){

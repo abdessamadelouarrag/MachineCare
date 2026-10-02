@@ -6,5 +6,6 @@ const router = Router();
 
 router.post("/updateUser", verifyToken, updateUser)
 router.get("/infos", verifyToken, showProfile)
+router.patch("/", verifyToken, updateUser)
 
 export default router;

@@ -129,3 +129,68 @@ export async function getMachine(req, res, next){
         next(error);
     }
 }
+
+export async function updateMachine(req, res, next){
+    try{
+        const machine = await Machine.findOne({reference : req.params.reference});
+        if(!machine){
+            return res.status(404).json({
+                message_error : "Machine introuvable !"
+            })
+        }
+        const {reference, name, workshop, status} = req.body || {};
+        if(reference === undefined && name === undefined && workshop === undefined && status === undefined){
+            return res.status(400).json({
+                message_error : "Aucun champ a modifier !"
+            })
+        }
+        if(reference !== undefined && (typeof reference !== "string" || !reference.trim())){
+            return res.status(400).json({
+                message_error : "Reference invalide !"
+            })
+        }
+        if(name !== undefined && (typeof name !== "string" || !name.trim())){
+            return res.status(400).json({
+                message_error : "Nom invalide !"
+            })
+        }
+        if(workshop !== undefined && (typeof workshop !== "string" || !workshop.trim())){
+            return res.status(400).json({
+                message_error : "Atelier invalide !"
+            })
+        }
+        if(status !== undefined && status !== "available" && status !== "maintenance" && status !== "out_of_service"){
+            return res.status(400).json({
+                message_error : "Etat de machine invalide !"
+            })
+        }
+        if(reference !== undefined){
+            const findMachine = await Machine.findOne({
+                reference : reference.trim(),
+                _id : {$ne : machine._id}
+            });
+            if(findMachine){
+                return res.status(409).json({
+                    message_error : "Reference deja utilise !"
+                })
+            }
+            machine.reference = reference.trim();
+        }
+        if(name !== undefined){
+            machine.name = name.trim();
+        }
+        if(workshop !== undefined){
+            machine.workshop = workshop.trim();
+        }
+        if(status !== undefined){
+            machine.status = status;
+        }
+        await machine.save();
+        return res.status(200).json({
+            message : "Machine modifiee.",
+            machine : machine
+        });
+    }catch(error){
+        next(error);
+    }
+}

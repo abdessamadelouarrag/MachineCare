@@ -8,7 +8,7 @@ const reportSchema = new mongoose.Schema({
     },
     reportedBy : {
         type : mongoose.Schema.Types.ObjectId,
-        ref : "User",
+        ref : "users",
         required : true
     },
     description : {
@@ -19,6 +19,7 @@ const reportSchema = new mongoose.Schema({
     status : {
         type : String,
         enum : ["open", "in_progress", "resolved"],
+        default : "open",
         required : true
     },
     resolvedAt : {

@@ -1,9 +1,31 @@
 import Machine from "../models/machine.js";
+import Report from "../models/report.js";
 
 export async function getMachines(req, res, next){
     try{
-        const machines = await Machine.find();
-        return res.status(200).json({machines});
+        const {workshop, status} = req.query;
+        const filter = {};
+        if(workshop !== undefined){
+            if(typeof workshop !== "string" || !workshop.trim()){
+                return res.status(400).json({
+                    message_error : "Atelier invalide !"
+                })
+            }
+            filter.workshop = workshop.trim();
+        }
+        if(status !== undefined){
+            if(status !== "available" && status !== "maintenance" && status !== "out_of_service"){
+                return res.status(400).json({
+                    message_error : "Etat de machine invalide !"
+                })
+            }
+            filter.status = status;
+        }
+        const machines = await Machine.find(filter);
+        return res.status(200).json({
+            total_machines : machines.length,
+            machines : machines
+        });
     }catch(error){
         next(error);
     }
@@ -11,46 +33,47 @@ export async function getMachines(req, res, next){
 
 export async function createMachine(req, res, next){
     try{
-        const {reference, name, workshop, status} = req.body;
-
-        if(!reference || !name || !workshop || !status){
+        const {reference, name, workshop, status = "available"} = req.body || {};
+        if(typeof reference !== "string" || !reference.trim()){
             return res.status(400).json({
-                messege_error : "obligation de tout les chemps !"
+                message_error : "Reference obligatoire !"
             })
         }
-        //validation reference
-        const regeX = /^[A-Z]$/;
-
-        if (!regeX.test(reference[0]) || reference.length !== 4) {
-            return res.status(404).json({
-                message_error: "incorrect exemple : M443"
-            });
+        if(typeof name !== "string" || !name.trim()){
+            return res.status(400).json({
+                message_error : "Nom obligatoire !"
+            })
         }
-
-        const findMachine = await Machine.findOne({reference : reference})
+        if(typeof workshop !== "string" || !workshop.trim()){
+            return res.status(400).json({
+                message_error : "Reference, nom et atelier obligatoires !"
+            })
+        }
+        if(status !== "available" && status !== "maintenance" && status !== "out_of_service"){
+            return res.status(400).json({
+                message_error : "Etat de machine invalide !"
+            })
+        }
+        const findMachine = await Machine.findOne({reference : reference.trim()});
         if(findMachine){
-            return res.status(400).json({
-                message_error : "deja une machine avec reference ! "
+            return res.status(409).json({
+                message_error : "Reference deja utilise !"
             })
         }
-
-        const createMachine = await Machine.create({
-            reference : reference,
-            name : name,
-            workshop : workshop,
+        const machine = await Machine.create({
+            reference : reference.trim(),
+            name : name.trim(),
+            workshop : workshop.trim(),
             status : status
-        })
-
+        });
         return res.status(201).json({
-            message : "tu a creer la machine bien ...",
-            info_machine : {reference : reference, name : name, workshop : workshop}
+            message : "Machine creee.",
+            info_machine : machine
         })
     }catch(error){
         next(error);
     }
-
 }
-
 
 export async function allMachines(req, res) {
 

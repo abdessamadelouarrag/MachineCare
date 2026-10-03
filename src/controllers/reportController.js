@@ -100,3 +100,81 @@ export async function getReport(req, res, next){
     }
 }
 
+export async function updateReport(req, res, next){
+    try{
+        if(!mongoose.isObjectIdOrHexString(req.params.id)){
+            return res.status(400).json({
+                message_error : "Identifiant signalement invalide !"
+            })
+        }
+        const {description, status, resolutionNote} = req.body || {};
+        if(description === undefined && status === undefined && resolutionNote === undefined){
+            return res.status(400).json({
+                message_error : "Aucun champ a modifier !"
+            })
+        }
+        if(description !== undefined && (typeof description !== "string" || !description.trim())){
+            return res.status(400).json({
+                message_error : "Description obligatoire !"
+            })
+        }
+        if(status !== undefined && status !== "open" && status !== "in_progress" && status !== "resolved"){
+            return res.status(400).json({
+                message_error : "Statut de panne invalide !"
+            })
+        }
+        if(resolutionNote !== undefined && typeof resolutionNote !== "string"){
+            return res.status(400).json({
+                message_error : "Note de resolution invalide !"
+            })
+        }
+        const report = await Report.findById(req.params.id);
+        if(!report){
+            return res.status(404).json({
+                message_error : "Signalement introuvable !"
+            })
+        }
+
+        // le statut avance jusqu'a la resolution, sans retour en arriere
+        let nextStatus = report.status;
+        if(status !== undefined){
+            nextStatus = status;
+        }
+        if(report.status === "resolved" && nextStatus !== "resolved"){
+            return res.status(409).json({
+                message_error : "Retour au statut precedent interdit !"
+            })
+        }
+        if(report.status === "in_progress" && nextStatus === "open"){
+            return res.status(409).json({
+                message_error : "Retour au statut precedent interdit !"
+            })
+        }
+        let note = report.resolutionNote;
+        if(resolutionNote !== undefined){
+            note = resolutionNote.trim();
+        }
+        if(nextStatus === "resolved" && !note){
+            return res.status(400).json({
+                message_error : "Note obligatoire pour resoudre la panne !"
+            })
+        }
+        if(description !== undefined){
+            report.description = description.trim();
+        }
+        if(resolutionNote !== undefined){
+            report.resolutionNote = note;
+        }
+        if(nextStatus === "resolved" && report.status !== "resolved"){
+            report.resolvedAt = new Date();
+        }
+        report.status = nextStatus;
+        await report.save();
+        return res.status(200).json({
+            message : "Signalement modifie.",
+            report : report
+        });
+    }catch(error){
+        next(error);
+    }
+}
